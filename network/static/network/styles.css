@@ -1,0 +1,78 @@
+#newpostbox {
+    border-style: solid;
+    border-radius: 1px;
+    border-color: lightgrey;
+    margin: 15px;
+    text-align: center;
+}
+
+#newpostlabel {
+    text-align: left;
+    margin-left: 2.5%;
+    margin-top: 1%;
+    font-weight: bold;
+}
+
+#newpost {
+    resize: none;
+    width:95%;
+    height: 30%;
+}
+
+#newpostsubmit {
+    margin-right: 92%;
+    margin-bottom: 1%;
+}
+
+.post {
+    border-style: solid;
+    border-radius: 1px;
+    border-color: lightgrey;
+    margin: 15px;
+}
+
+.username {
+    margin-top: 1%;
+    font-weight: bold;
+    margin-left: 2.5%;
+}
+
+.editpost {
+    margin-left: 2.5%;
+}
+
+.editpost:hover {
+    color : blue
+}
+
+.postcontent {
+    margin-left: 2.5%;
+}
+
+.timestamp {
+    font-size: 0.75rem;
+    margin-left: 2.5%;
+}
+
+.like {
+    margin-left: 2.5%;
+    font-size: 1.5rem;
+}
+
+.like:hover {
+    color : blue
+}
+
+.full {
+    color:blue
+}
+
+.comments {
+    margin-left: 2.5%;
+    margin-bottom: 1%;
+}
+
+.comments:hover {
+    color : blue
+}
+

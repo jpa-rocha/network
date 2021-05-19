@@ -1,15 +1,70 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.forms.widgets import Textarea
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django import forms
+from django.core.paginator import Paginator
+import json
 
-from .models import User
+from .models import User, Post, Comments, Likes, Following
 
 
-def index(request):
-    return render(request, "network/index.html")
+class NewPost(forms.ModelForm):
+    class Meta:  
+         model = Post
+         fields = ['post']
+         labels = {
+            'post': '',
+        }
+         widgets = {
+             'post' : Textarea(attrs={
+                 'id' : 'newpost',
+                 'rows' : '4'
+             })
+         }
 
+def index(request, page):
+    posts = Post.objects.all()
+    posts = posts.order_by("-added").all()
+    p = Paginator(posts,10)
+    pagenums = p.page_range
+    return render(request, "network/index.html", {
+        'post' : NewPost(),
+        'pagenums' : pagenums,
+    })
+
+def createpost (request):
+    if request.method == "POST":
+        post = NewPost(request.POST)
+        if post.is_valid():
+            user = request.user
+            newpost = Post.objects.create(post = post.cleaned_data['post'], user=user)
+            return HttpResponseRedirect(reverse("index", kwargs={'page':1}))
+
+def posts(request, page_num):
+    posts = Post.objects.all()
+    posts = posts.order_by("-added").all()
+    page = Paginator(posts,10)
+    return JsonResponse([post.serialize() for post in page.page(page_num)], safe=False)
+
+def likes(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        username = data['username']
+        post = data['post']
+        user = User.objects.get(username=username)
+        post = Post.objects.get(id = post)
+        like = Likes.objects.filter(user_id=user.id, post_id=post.id)
+        if like:
+            like.delete()
+        else:
+            newlike = Likes.objects.create(user_id=user.id, post_id=post.id)
+        return JsonResponse({"message": "Like data sent successfully."}, status=201)
+    else:
+        likes = Likes.objects.all()
+        return JsonResponse([like.serialize() for like in likes], safe=False)
 
 def login_view(request):
     if request.method == "POST":
@@ -22,7 +77,7 @@ def login_view(request):
         # Check if authentication successful
         if user is not None:
             login(request, user)
-            return HttpResponseRedirect(reverse("index"))
+            return HttpResponseRedirect(reverse("index", kwargs={'page':1}))
         else:
             return render(request, "network/login.html", {
                 "message": "Invalid username and/or password."
@@ -33,7 +88,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return HttpResponseRedirect(reverse("index"))
+    return HttpResponseRedirect(reverse("index", kwargs={'page':1}))
 
 
 def register(request):

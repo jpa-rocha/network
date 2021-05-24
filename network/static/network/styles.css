@@ -48,7 +48,15 @@
 .postcontent {
     margin-left: 2.5%;
 }
+.epost {
+    margin-left: 2.5%;
+    resize: none;
+    width:95%;
+}
 
+.subedit{
+    margin-left: 2.5%;
+}
 .timestamp {
     font-size: 0.75rem;
     margin-left: 2.5%;
@@ -67,7 +75,7 @@
     color:blue
 }
 
-.comments {
+.commentstitle {
     margin-left: 2.5%;
     margin-bottom: 1%;
 }

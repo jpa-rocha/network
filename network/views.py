@@ -41,6 +41,7 @@ def createpost (request):
         if post.is_valid():
             user = request.user
             newpost = Post.objects.create(post = post.cleaned_data['post'], user=user)
+            newpost.save()
             return HttpResponseRedirect(reverse("index", kwargs={'page':1}))
 
 def posts(request, page_num):
@@ -61,10 +62,20 @@ def likes(request):
             like.delete()
         else:
             newlike = Likes.objects.create(user_id=user.id, post_id=post.id)
+            newlike.save()
         return JsonResponse({"message": "Like data sent successfully."}, status=201)
     else:
         likes = Likes.objects.all()
         return JsonResponse([like.serialize() for like in likes], safe=False)
+
+def edit(request, post_id):
+    editpost = Post.objects.get(id = post_id)
+    if request.method == "PUT":
+        data = json.loads(request.body)
+        print(data['post'])
+        editpost.post = data['post']
+        editpost.save()
+        return HttpResponse(status=204)
 
 def login_view(request):
     if request.method == "POST":

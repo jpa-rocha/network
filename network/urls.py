@@ -13,4 +13,5 @@ urlpatterns = [
 # API calls
     path('posts/<int:page_num>',views.posts, name="posts"),
     path('likes', views.likes, name="likes"),
+    path('edit/<int:post_id>', views.edit, name='edit')
 ]

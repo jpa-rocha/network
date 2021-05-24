@@ -1,7 +1,7 @@
 
 document.addEventListener('DOMContentLoaded', function() {
 
-// allow to take the numbers from page links and input them in the showpage() function
+// Takes the numbers from page links and input them in the showpage() function
     document.addEventListener('click', event =>{
     const element = event.target;
     const pagenum = parseInt(element.textContent)
@@ -10,15 +10,41 @@ document.addEventListener('DOMContentLoaded', function() {
         showpage(pagenum)  
     }
     })
+// Adds likes to DB and display them in page
     document.addEventListener('click', event =>{
         const element = event.target;
         if (element.className.includes("like") ) {
             id = parseInt(element.id.slice(4));
             add_like(id);
-            show_likes(id)
         }
         })
 
+// Show and hides edit separator
+    document.addEventListener('click', event =>{
+        const element = event.target;
+        if (element.className.includes("editpost") ) {
+            id = parseInt(element.id.slice(8));
+            editarea = document.getElementById(`editarea${id}`)
+            postarea = document.getElementById(`postcontent${id}`)
+            if (editarea.style.display === 'none'){
+                editarea.style.display = 'block';
+                postarea.style.display = 'none';
+                
+            }
+            else{
+                editarea.style.display = 'none';
+                postarea.style.display = 'block';
+            }
+        }
+        })
+// Makes the edits to posts
+document.addEventListener('click', event =>{
+    const element = event.target;
+    if (element.className.includes("subedit")) {
+        id = parseInt(element.id.slice(7));
+        edit(id)
+    }
+})
 window.onpopstate = function(event) {
     showpage(event.state.pagenumber);
 }
@@ -26,6 +52,7 @@ history.pushState({"pagenumber" : 1}, "",'1');
 showpage(1)
 })
 
+// From Django guide
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -47,12 +74,14 @@ function showpage(num){
     const pages = document.getElementsByClassName('postpage');
     if (pages.lenght === 0) {
         page(num);
+       
     }
     else if (singlepage === null && pages.lenght !=0){
         for (var i=0;i<pages.length;i+=1) {
             pages[i].style.display = 'none'
         }
-        page(num)
+        page(num);
+      
     }
     else{
         for (var i=0;i<pages.length;i+=1) {
@@ -64,18 +93,13 @@ function showpage(num){
     
 
 function page(num){
-    console.log('test')
-    Promise.all([
-        fetch(`/posts/${num}`),
-        fetch('/likes')
-    ])
-    .then(allresponses => {
-        const posts = allresponses[0].json();
-        const likes = allresponses[1].json();
-        return {posts : posts, likes : likes}
+    fetch(`/posts/${num}`)
+    .then(responses => {
+        const posts = responses.json();
+        return {posts : posts}
     })
-    .then(function(totalpost) {
-        posts = totalpost.posts.then( posts =>{
+    .then(function(mainpost) {
+        posts = mainpost.posts.then( posts =>{
     
         // Create a division for each page
         const postpage = document.createElement('div');
@@ -113,8 +137,30 @@ function page(num){
         // Create division for post content
         const postcontent = document.createElement('div');
         postcontent.classList.add('postcontent');
+        postcontent.id = `postcontent${post.id}`;
         postcontent.innerHTML = post['post'];
+        postcontent.style.display = 'block';
+        // Create division for edits
+        const editarea = document.createElement('div');
+        editarea.classList.add('editarea');
+        editarea.id = `editarea${post.id}`;
+        const editpost = document.createElement('textarea');
+        editpost.classList.add('epost');
+        editpost.id = `epost${post.id}`;
+        editpost.innerHTML = post['post'];
+        const subedit = document.createElement('button');
+        subedit.className = 'subedit btn btn-sm btn-outline-primary'
+        subedit.id = `subedit${post.id}`
+        subedit.innerHTML = 'Edit'
+        editarea.style.display = 'none'
+        document.getElementById(`${post.id}`).appendChild(editarea);
+        document.getElementById(`editarea${post.id}`).appendChild(editpost);
+        document.getElementById(`editarea${post.id}`).appendChild(subedit);
         document.getElementById(`${post.id}`).appendChild(postcontent);
+        // Alter textarea properties
+        document.getElementById(`epost${post.id}`).rows = 4
+        document.getElementById(`epost${post.id}`).cols = 40
+        document.getElementById(`epost${post.id}`).maxLength = 500
 
         // Create division for timestamp
         const timestamp = document.createElement('p');
@@ -144,46 +190,21 @@ function page(num){
         const comments = document.createElement('div');
         comments.classList.add('comments')
         comments.id = `comments${post.id}`
-        comments.innerHTML = 'Comments'
         document.getElementById(`${post.id}`).appendChild(comments);
+        const commentstitle = document.createElement('p');
+        commentstitle.classList.add('commentstitle')
+        commentstitle.id = `commentstitle${post.id}`
+        commentstitle.innerHTML = 'Comments'
+        document.getElementById(`comments${post.id}`).appendChild(commentstitle);
     })
-
     })
-    console.log('testlike')
-    // Like section - numbers and icons
-    likes = totalpost.likes.then(likes => {
-        console.log('testlike2')
-        const likenum = document.getElementsByClassName('likenum');
-        for (var i=0;i<likenum.length;i+=1) {
-            console.log(i) 
-            let likecount = 0;
-            let userctrl = 0
-            const ucheck = document.getElementById('usercheck');
-            const likesymbol = document.getElementById(`like${likenum[i].id.slice(7)}`);
-            const likesymbolf = document.getElementById(`likf${likenum[i].id.slice(7)}`);
-            likes.forEach(like =>{
-                console.log(parseInt(likenum[i].id.slice(7)))
-                if (like.post_id === parseInt(likenum[i].id.slice(7))){
-                    likecount += 1;
-                    
-                }
-                if (like.post_id === parseInt(likenum[i].id.slice(7)) && ucheck.textContent === like.username){
-                    userctrl = 1;
-                }
-            })
-            if (userctrl === 1){
-                likesymbol.style.display = 'none'
-                likesymbolf.style.display = 'inline-block'
-            }
-            likenum[i].innerHTML = likecount;
-                }
-            })
     })
+    .then(()=> show_likes())
 }
+
 
 // Function adds likes to DB still need to add current add to page
 function add_like(postid){
-    console.log('post')
     const csrftoken = getCookie('csrftoken');
     const username = document.getElementById('usercheck').textContent;
     postid = postid;
@@ -205,40 +226,62 @@ function add_like(postid){
     .then(response => {
             response.json();
         })
-
+    .then( ()=> show_likes())
     .catch(error => console.log('error:', error));
     }
 
 
-function show_likes(postid){
+function show_likes(){
     // Get all likes from DB
-    console.log('show')
     fetch('/likes')
     .then(response => response.json())
     .then(likes =>{
-        let likecount = 0
-        let userctrl = 0
-        const ucheck = document.getElementById('usercheck');
-        likes.forEach(like =>{
-            if (like.post_id === postid && like.username === ucheck.textContent){
-                likecount += 1
-                userctrl = 1
+        const likenums = document.querySelectorAll('.likenum');
+        for (likenum of likenums){ 
+            let likecount = 0;
+            let userctrl = 0
+            const ucheck = document.getElementById('usercheck');
+            const likesymbol = document.getElementById(`like${likenum.id.slice(7)}`);
+            const likesymbolf = document.getElementById(`likf${likenum.id.slice(7)}`);
+            likes.forEach(like =>{
+                if (like.post_id === parseInt(likenum.id.slice(7))){
+                    likecount += 1;
+                    
+                }
+                if (like.post_id === parseInt(likenum.id.slice(7)) && ucheck.textContent === like.username){
+                    userctrl = 1;
+                }
+            })
+            if (userctrl === 1){
+                likesymbol.style.display = 'none'
+                likesymbolf.style.display = 'inline-block'
             }
-        })
-        const likesymbol = document.getElementById(`like${postid}`);
-        const likesymbolf = document.getElementById(`likf${postid}`);
-        const likenumber = document.getElementById(`likenum${postid}`);
-        likenumber.innerHTML = likecount;
-        if (userctrl === 1){
-            likesymbol.style.display = 'none';
-            likesymbolf.style.display = 'inline-block';
-        }
-        else{
-            likesymbol.style.display = 'inline-block';
-            likesymbolf.style.display = 'none';
+            else{
+                likesymbol.style.display = 'inline-block'
+                likesymbolf.style.display = 'none'
+            }
+            likenum.innerHTML = likecount;
+            
         }
     })
     .catch(error => console.log('error:', error));
 }
 
+function edit(postid) {
+    const csrftoken = getCookie('csrftoken');
+    postid = postid;
+    const request = new Request(
+        `edit/${postid}`,
+        {headers: {'X-CSRFToken': csrftoken}}
+        )
+    const editpost = document.getElementById(`epost${postid}`).innerHTML
+        fetch(request, {
+            method: 'PUT',
+            mode: 'same-origin',
+            body: JSON.stringify({
+                post: editpost
+            })
+        })
 
+    
+}

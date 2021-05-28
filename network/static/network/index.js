@@ -37,19 +37,49 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         })
-// Makes the edits to posts
-document.addEventListener('click', event =>{
-    const element = event.target;
-    if (element.className.includes("subedit")) {
-        id = parseInt(element.id.slice(7));
-        edit(id)
-    }
-})
-window.onpopstate = function(event) {
-    showpage(event.state.pagenumber);
-}
-history.pushState({"pagenumber" : 1}, "",'1');
-showpage(1)
+
+        document.addEventListener('click', event =>{
+            const element = event.target;
+            if (element.className.includes("commentstitle") ) {
+                id = parseInt(element.id.slice(13));
+                commentarea = document.getElementById(`comments${id}`)
+                if (commentarea.style.display === 'none'){
+                    commentarea.style.display = 'block';
+                    showcomments(id)
+
+                }
+                else{
+                    commentarea.style.display = 'none';
+                }
+            }
+            })
+
+        // Makes the edits to posts
+        document.addEventListener('click', event =>{
+            const element = event.target;
+            if (element.className.includes("subedit")) {
+                id = parseInt(element.id.slice(7));
+                edit(id)
+            }
+        })
+
+        // Posts new comment
+        document.addEventListener('click', event =>{
+            const element = event.target;
+            if (element.className.includes("subcomment")) {
+                id = parseInt(element.id.slice(10));
+                newcomment(id)
+            }
+        })
+
+        // pushes page number to url
+        window.onpopstate = function(event) {
+            showpage(event.state.pagenumber);
+        }
+        history.pushState({"pagenumber" : 1}, "",'1');
+        
+        // Load first page by default
+        showpage(1);
 })
 
 // From Django guide
@@ -140,8 +170,9 @@ function page(num){
         postcontent.id = `postcontent${post.id}`;
         postcontent.innerHTML = post['post'];
         postcontent.style.display = 'block';
+
         // Create division for edits
-        const editarea = document.createElement('div');
+        const editarea = document.createElement('form');
         editarea.classList.add('editarea');
         editarea.id = `editarea${post.id}`;
         const editpost = document.createElement('textarea');
@@ -157,10 +188,12 @@ function page(num){
         document.getElementById(`editarea${post.id}`).appendChild(editpost);
         document.getElementById(`editarea${post.id}`).appendChild(subedit);
         document.getElementById(`${post.id}`).appendChild(postcontent);
+
         // Alter textarea properties
-        document.getElementById(`epost${post.id}`).rows = 4
-        document.getElementById(`epost${post.id}`).cols = 40
-        document.getElementById(`epost${post.id}`).maxLength = 500
+        editpost.rows = 4
+        editpost.cols = 40
+        editpost.maxLength = 500
+        subedit.type = 'submit'
 
         // Create division for timestamp
         const timestamp = document.createElement('p');
@@ -187,15 +220,45 @@ function page(num){
         document.getElementById(`${post.id}`).appendChild(likenum);
 
         // Create division for comments
-        const comments = document.createElement('div');
-        comments.classList.add('comments')
-        comments.id = `comments${post.id}`
-        document.getElementById(`${post.id}`).appendChild(comments);
+        // Title / button
         const commentstitle = document.createElement('p');
         commentstitle.classList.add('commentstitle')
         commentstitle.id = `commentstitle${post.id}`
         commentstitle.innerHTML = 'Comments'
-        document.getElementById(`comments${post.id}`).appendChild(commentstitle);
+        document.getElementById(`${post.id}`).appendChild(commentstitle);
+
+        // Comment area
+        const comments = document.createElement('div');
+        comments.className = 'comments';
+        comments.id = `comments${post.id}`
+        comments.style.display = 'none'
+        document.getElementById(`${post.id}`).appendChild(comments);
+        
+        
+        // Textarea for new comment and submit button
+        const commentform = document.createElement('form');
+        commentform.className = 'commentform';
+        commentform.id = `commentform${post.id}`;
+
+        const newcomment = document.createElement('textarea');
+        newcomment.classList.add('newcomment');
+        newcomment.id = `newcomment${post.id}`;
+
+        const subcomment = document.createElement('button');
+        subcomment.className = 'subcomment btn btn-sm btn-outline-primary'
+        subcomment.id = `subcomment${post.id}`
+        subcomment.innerHTML = 'Comment'
+        
+        document.getElementById(`comments${post.id}`).appendChild(commentform);
+        document.getElementById(`commentform${post.id}`).appendChild(newcomment);
+        document.getElementById(`commentform${post.id}`).appendChild(subcomment);
+
+        // Alter Comment area properties
+        newcomment.rows = 4
+        newcomment.cols = 40
+        newcomment.maxLength = 500
+        subcomment.type = 'submit'
+
     })
     })
     })
@@ -207,7 +270,6 @@ function page(num){
 function add_like(postid){
     const csrftoken = getCookie('csrftoken');
     const username = document.getElementById('usercheck').textContent;
-    postid = postid;
     const request = new Request(
         '/likes',
         {headers: {'X-CSRFToken': csrftoken}}
@@ -269,12 +331,11 @@ function show_likes(){
 
 function edit(postid) {
     const csrftoken = getCookie('csrftoken');
-    postid = postid;
     const request = new Request(
         `edit/${postid}`,
         {headers: {'X-CSRFToken': csrftoken}}
         )
-    const editpost = document.getElementById(`epost${postid}`).innerHTML
+    const editpost = document.getElementById(`epost${postid}`).value
         fetch(request, {
             method: 'PUT',
             mode: 'same-origin',
@@ -282,6 +343,69 @@ function edit(postid) {
                 post: editpost
             })
         })
+}
 
-    
+function newcomment(postid){
+    const csrftoken = getCookie('csrftoken');
+    const request = new Request(
+        `comment/${postid}`,
+        {headers: {'X-CSRFToken': csrftoken}}
+        )
+    const comment = document.getElementById(`newcomment${postid}`).value
+    const username = document.getElementById('usercheck').textContent;
+
+        fetch(request, {
+            method: 'POST',
+            mode: 'same-origin',
+            body: JSON.stringify({
+                comment: comment,
+                username : username
+            })
+        })
+}
+
+function showcomments(postid) {
+    fetch(`/comment/${postid}`)
+    .then(response => response.json())
+    .then(comments =>{
+        const commentarea = document.createElement('div');
+        commentarea.className = 'commentarea';
+        commentarea.id = `commentarea${postid}`;
+        if (document.getElementById(`commentarea${postid}`) === null){
+            document.getElementById(`comments${postid}`).appendChild(commentarea);
+        }
+        comments.forEach(comment =>{
+
+            const timestamp = document.createElement('p');
+            timestamp.classname = 'commentdate';
+            timestamp.id = `commentdate${comment['id']}`;
+            timestamp.innerHTML = `Comment posted on: ${comment['timestamp']}`;
+            
+            const user = document.createElement('p');
+            user.classname = 'commentuser';
+            user.id = `commentuser${comment['id']}`;
+            user.innerHTML = `By: ${comment['username']}`;
+            
+            const commentcontent = document.createElement('p');
+            commentcontent.className = 'commentcontent';
+            commentcontent.id = `commentcontent${comment['id']}`
+            commentcontent.innerHTML = `${comment['comment']}`
+
+            const divider = document.createElement('hr');
+            divider.className = 'divider';
+
+            if (document.getElementById(`commentdate${comment['id']}`) === null){
+                document.getElementById(`commentarea${postid}`).appendChild(timestamp);
+                
+            }
+            if (document.getElementById(`commentuser${comment['id']}`) === null){
+                document.getElementById(`commentarea${postid}`).appendChild(user);
+                
+            }
+            if (document.getElementById(`commentcontent${comment['id']}`) === null){
+                document.getElementById(`commentarea${postid}`).appendChild(commentcontent);
+                document.getElementById(`commentarea${postid}`).appendChild(divider);
+            }
+        })
+    })
 }

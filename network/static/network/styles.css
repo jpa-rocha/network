@@ -80,7 +80,39 @@
     margin-bottom: 1%;
 }
 
-.comments:hover {
+.commentstitle:hover {
     color : blue
 }
 
+.newcomment {
+    margin-left: 2.5%;
+    resize: none;
+    width:95%;
+}
+
+.subcomment{
+    margin-left: 2.5%;
+}
+
+.commentarea {
+    margin-top: 2%;
+    margin-left: 5%;
+}
+
+.commentdate {
+
+}
+
+.commentuser {
+
+}
+
+.commentcontent {
+    margin-left: 5%;
+    background-color: #f8f9fa;
+    margin-right: 10%;
+}
+
+.divider {
+    margin-right: 5%;
+}

@@ -25,9 +25,10 @@ class Comments(models.Model):
     user = ForeignKey(User, on_delete=models.PROTECT, related_name="ucomments")
     post = ForeignKey(Post, on_delete=models.CASCADE, related_name="pcomments")
     comment = models.TextField(max_length=750)
-    date_added = models.DateField(auto_now_add=True)
+    date_added = models.DateTimeField(auto_now_add=True)
     def serialize(self):
         return {
+            "id" : self.id,
             "comment" : self.comment,
             "post_id" : self.post.id,
             "username" : self.user.username,

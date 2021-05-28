@@ -25,6 +25,9 @@ class NewPost(forms.ModelForm):
              })
          }
 
+def init(request):
+    return HttpResponseRedirect(reverse("index", kwargs={'page':1}))
+
 def index(request, page):
     posts = Post.objects.all()
     posts = posts.order_by("-added").all()
@@ -44,38 +47,16 @@ def createpost (request):
             newpost.save()
             return HttpResponseRedirect(reverse("index", kwargs={'page':1}))
 
-def posts(request, page_num):
-    posts = Post.objects.all()
+def userpage(request, username):
+    user = User.objects.get(username = username)
+    posts = Post.objects.filter(user = user)
     posts = posts.order_by("-added").all()
-    page = Paginator(posts,10)
-    return JsonResponse([post.serialize() for post in page.page(page_num)], safe=False)
+    p = Paginator(posts,10)
+    pagenums = p.page_range
+    return render(request, "network/user.html", {
+        'pagenums' : pagenums,
+    })
 
-def likes(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        username = data['username']
-        post = data['post']
-        user = User.objects.get(username=username)
-        post = Post.objects.get(id = post)
-        like = Likes.objects.filter(user_id=user.id, post_id=post.id)
-        if like:
-            like.delete()
-        else:
-            newlike = Likes.objects.create(user_id=user.id, post_id=post.id)
-            newlike.save()
-        return JsonResponse({"message": "Like data sent successfully."}, status=201)
-    else:
-        likes = Likes.objects.all()
-        return JsonResponse([like.serialize() for like in likes], safe=False)
-
-def edit(request, post_id):
-    editpost = Post.objects.get(id = post_id)
-    if request.method == "PUT":
-        data = json.loads(request.body)
-        print(data['post'])
-        editpost.post = data['post']
-        editpost.save()
-        return HttpResponse(status=204)
 
 def login_view(request):
     if request.method == "POST":
@@ -83,7 +64,7 @@ def login_view(request):
         # Attempt to sign user in
         username = request.POST["username"]
         password = request.POST["password"]
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(request, username = username, password = password)
 
         # Check if authentication successful
         if user is not None:
@@ -127,3 +108,58 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "network/register.html")
+
+
+#API posts
+def posts(request, page_num):
+    posts = Post.objects.all()
+    posts = posts.order_by("-added").all()
+    page = Paginator(posts,10)
+    return JsonResponse([post.serialize() for post in page.page(page_num)], safe=False)
+
+#API likes
+def likes(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        username = data['username']
+        post = data['post']
+        user = User.objects.get(username=username)
+        post = Post.objects.get(id = post)
+        like = Likes.objects.filter(user_id = user.id, post_id = post.id)
+        if like:
+            like.delete()
+        else:
+            newlike = Likes.objects.create(user_id=user.id, post_id=post.id)
+            newlike.save()
+        return JsonResponse({"message": "Like data sent successfully."}, status=201)
+    else:
+        likes = Likes.objects.all()
+        return JsonResponse([like.serialize() for like in likes], safe=False)
+
+#API edit
+def edit(request, post_id):
+    try:
+        editpost = Post.objects.get(id = post_id)
+        if request.method == "PUT":
+            data = json.loads(request.body)
+            editpost.post = data['post']
+            editpost.save()
+            return HttpResponse(status=204)
+    except editpost.DoesNotExist:
+        return JsonResponse({"error": "Post not found."}, status=404)
+
+#API comments
+def comment(request, post_id):
+    if request.method == "POST":
+        post = Post.objects.get(id = post_id)
+        try:
+            data = json.loads(request.body)
+            user = User.objects.get(username = data['username'])
+            newpost = Comments.objects.create(comment = data['comment'], user = user, post = post)
+            newpost.save()
+            return HttpResponse(status=204)
+        except post.DoesNotExist:
+            return JsonResponse({"error": "Post not found."}, status=404)
+    else:
+        comments = Comments.objects.filter(post_id = post_id)
+        return JsonResponse([comment.serialize() for comment in comments], safe=False)

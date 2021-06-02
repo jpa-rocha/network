@@ -72,6 +72,22 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
 
+        // Follows user
+        document.addEventListener('click', event =>{
+            const element = event.target;
+            if (element.id === "follow") {
+                follow()
+            }
+        })
+
+        // change to different user pages
+        document.addEventListener('click', event =>{
+            const element = event.target;
+            if (element.className.includes("username")) {
+                const username = element.innerText;
+                change_user_page(username)
+            }
+        })
         // pushes page number to url
         window.onpopstate = function(event) {
             showpage(event.state.pagenumber);
@@ -128,6 +144,11 @@ function page(num){
     if (pagecheck === 'user'){
         const user = window.location.pathname.split('/')[2];
         conditionalrequest = new Request(`/user_posts/${user}/${num}`, {
+            method: 'GET',
+          });
+    }
+    else if (pagecheck === 'following'){
+        conditionalrequest = new Request(`/following_posts/${num}`, {
             method: 'GET',
           });
     }
@@ -425,5 +446,61 @@ function showcomments(postid) {
 }
 
 function follow(){
-    
+    follow_username = document.getElementById('username').innerText;
+    user_username = document.getElementById('usercheck').innerText;
+    const csrftoken = getCookie('csrftoken');
+    const request = new Request(
+        '/follow',
+        {headers: {'X-CSRFToken': csrftoken}}
+        )
+        fetch(request, {
+            method: 'POST',
+            mode: 'same-origin',
+            body: JSON.stringify({
+                follow_username : follow_username,
+                user_username : user_username
+            })
+        })
+        .then(response => {
+            response.json();
+        })
+        .then( ()=> show_follow())
+        .catch(error => console.log('error:', error))
+}
+function show_follow(){
+    fetch('/follow')
+    .then(response => response.json())
+    .then(follows =>{
+        const followbtn = document.getElementById('follow');
+        const followedcount = document.getElementById('followed')
+        const follow_username = document.getElementById('username').innerText;
+        const user_username = document.getElementById('usercheck').innerText;
+        var follow_check = 0
+        follows.forEach(follow => {
+            if (follow['username'] === user_username && follow['followname'] === follow_username) {
+                follow_check = 1
+            }
+            else{
+                follow_check = 0
+            }
+        })
+        if (follow_check === 1){
+            followbtn.className = 'btn btn-sm btn-primary';
+            followbtn.innerText = 'Unfollow';
+            followedcount.innerText = parseInt(followedcount.innerText) + 1;
+        }
+        else {
+            followbtn.className = 'btn btn-sm btn-outline-primary';
+            followbtn.innerText = 'Follow';
+            followedcount.innerText = parseInt(followedcount.innerText) - 1;
+        }
+    })
+    .catch(error => console.log('error:', error))
+}
+
+function change_user_page(username){
+    const pagecheck = window.location.pathname.split('/')[1];
+    if (pagecheck != 'user'){
+    window.location.assign(`user/${username}/1`);
+    }
 }

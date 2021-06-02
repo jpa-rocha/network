@@ -36,6 +36,9 @@
     font-weight: bold;
     margin-left: 2.5%;
 }
+.username:hover{
+    color: blue
+}
 
 .editpost {
     margin-left: 2.5%;
@@ -99,13 +102,6 @@
     margin-left: 5%;
 }
 
-.commentdate {
-
-}
-
-.commentuser {
-
-}
 
 .commentcontent {
     margin-left: 5%;
@@ -115,4 +111,13 @@
 
 .divider {
     margin-right: 5%;
+}
+
+.userinfo {
+    margin-left: 2.5%;
+}
+
+#username {
+    font-weight: bold;
+    font-size: 2rem;
 }

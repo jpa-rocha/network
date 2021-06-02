@@ -38,7 +38,7 @@ def index(request, page):
         'pagenums' : pagenums,
     })
 
-def createpost (request):
+def createpost(request):
     if request.method == "POST":
         post = NewPost(request.POST)
         if post.is_valid():
@@ -47,14 +47,29 @@ def createpost (request):
             newpost.save()
             return HttpResponseRedirect(reverse("index", kwargs={'page':1}))
 
-def userpage(request, username):
+def userpage(request, username, page):
     user = User.objects.get(username = username)
     posts = Post.objects.filter(user = user)
     posts = posts.order_by("-added").all()
     p = Paginator(posts,10)
     pagenums = p.page_range
+    follows = Following.objects.filter(user_id = user.id)
+    followed = Following.objects.filter(follow_id = user.id)
+    followcount = 0
+    for follow in follows:
+        followcount += 1
+    followedcount = 0
+    for follow in followed:
+        followedcount += 1
+    
+    
+    
     return render(request, "network/user.html", {
         'pagenums' : pagenums,
+        'username' : user.username,
+        'joined' : user.date_joined,
+        'follows' : followcount,
+        'followed' : followedcount
     })
 
 
@@ -105,7 +120,7 @@ def register(request):
                 "message": "Username already taken."
             })
         login(request, user)
-        return HttpResponseRedirect(reverse("index"))
+        return HttpResponseRedirect(reverse("index", kwargs={'page':1}))
     else:
         return render(request, "network/register.html")
 
@@ -113,6 +128,14 @@ def register(request):
 #API posts
 def posts(request, page_num):
     posts = Post.objects.all()
+    posts = posts.order_by("-added").all()
+    page = Paginator(posts,10)
+    return JsonResponse([post.serialize() for post in page.page(page_num)], safe=False)
+
+#API user
+def user_posts(request, username, page_num):
+    user = User.objects.get(username = username)
+    posts = Post.objects.filter(user = user)
     posts = posts.order_by("-added").all()
     page = Paginator(posts,10)
     return JsonResponse([post.serialize() for post in page.page(page_num)], safe=False)

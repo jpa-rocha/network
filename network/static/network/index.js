@@ -123,7 +123,21 @@ function showpage(num){
     
 
 function page(num){
-    fetch(`/posts/${num}`)
+    const pagecheck = window.location.pathname.split('/')[1];
+    var conditionalrequest = new Request('request')
+    if (pagecheck === 'user'){
+        const user = window.location.pathname.split('/')[2];
+        conditionalrequest = new Request(`/user_posts/${user}/${num}`, {
+            method: 'GET',
+          });
+    }
+    else{
+        conditionalrequest = new Request(`/posts/${num}`, {
+            method: 'GET',
+          });
+        
+    }
+    fetch(conditionalrequest)
     .then(responses => {
         const posts = responses.json();
         return {posts : posts}
@@ -379,12 +393,12 @@ function showcomments(postid) {
             const timestamp = document.createElement('p');
             timestamp.classname = 'commentdate';
             timestamp.id = `commentdate${comment['id']}`;
-            timestamp.innerHTML = `Comment posted on: ${comment['timestamp']}`;
+            timestamp.innerHTML = `<b>Comment posted on:</b> ${comment['timestamp']}`;
             
             const user = document.createElement('p');
             user.classname = 'commentuser';
             user.id = `commentuser${comment['id']}`;
-            user.innerHTML = `By: ${comment['username']}`;
+            user.innerHTML = `<b>By:</b> ${comment['username']}`;
             
             const commentcontent = document.createElement('p');
             commentcontent.className = 'commentcontent';
@@ -408,4 +422,8 @@ function showcomments(postid) {
             }
         })
     })
+}
+
+function follow(){
+    
 }

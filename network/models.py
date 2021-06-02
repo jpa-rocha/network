@@ -1,5 +1,5 @@
 from django.contrib.auth.models import AbstractUser
-from django.db.models.fields.related import ForeignKey, ManyToManyField
+from django.db.models.fields.related import ForeignKey, ManyToManyField, OneToOneField
 from django.db import models
 
 
@@ -47,4 +47,5 @@ class Likes(models.Model):
         }
 
 class Following(models.Model):
-    follow = ManyToManyField(User, related_name="following")
+    user = ForeignKey(User, on_delete=models.CASCADE, related_name="follows")
+    follow = OneToOneField(User, related_name="following", on_delete=models.CASCADE)

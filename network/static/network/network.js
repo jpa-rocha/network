@@ -1,23 +1,19 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Hides navi from login and register
-    hide_navi()
+    // Hides & disables navi accordint to need
+    visual_navi()
 
 
     // Takes the numbers from page links and input them in the showpage() function
+    
     document.addEventListener('click', event =>{
     const element = event.target;
-    const pagenum = parseInt(element.textContent)
-    if (element.innerText === '&raquo;') {
-        const pagecheck = window.location.pathname.split('/')[2];
-        console.log(typeof pagecheck)
+    if (element.className === "page-link") {
+        navi(element.innerText)
+        visual_navi()
+    }})
+    
 
-    }
-    else if (element.className === "page-link") {
-        history.pushState({"pagenumber" : pagenum}, "",`${pagenum}`);
-        showpage(pagenum)  
-    }
-    })
     // Adds likes to DB and display them in page
     document.addEventListener('click', event =>{
         const element = event.target;
@@ -513,13 +509,57 @@ function change_user_page(username){
     }
 }
 
-function hide_navi(){
+function visual_navi(){
     const navicheck = window.location.pathname.split('/')[1];
     const navi = document.getElementById('pagenavigation');
+    const left = document.getElementById('left');
+    const right = document.getElementById('right');
+    const pagecheck = window.location.pathname.split('/');
+    const pagenumber = parseInt(pagecheck.slice(-1)[0]);
+    const totalpages = parseInt(document.getElementById('pages').innerText)
+    
     if (navicheck === 'login' || navicheck === 'register'){
         navi.style.visibility = 'hidden'
     }
     else{
         navi.style.visibility = 'visible'
+    }
+    if (pagenumber === totalpages){
+        right.className = 'page-item disabled';
+    }
+    else{
+        right.className = 'page-item';
+    }
+    if (pagenumber === 1) {
+        left.className = 'page-item disabled';
+    }
+    else {
+        left.className = 'page-item';
+    }
+}
+
+function navi(direction){
+    const pagenum = parseInt(direction)
+    const pagecheck = window.location.pathname.split('/');
+    const pagenumber = parseInt(pagecheck.slice(-1)[0]);
+    const totalpages = parseInt(document.getElementById('pages').innerText)
+    
+    if (direction === '»') {
+        if (pagenumber < totalpages ){
+            const newpage = pagenumber + 1;
+            history.pushState({"pagenumber" : newpage}, "",`${newpage}`);
+            showpage(newpage);
+        }
+    }
+    else if (direction === '«'){
+        if (pagenumber > 1){
+            const newpage = pagenumber - 1;
+            history.pushState({"pagenumber" : newpage}, "",`${newpage}`);
+            showpage(newpage);
+        }
+    }
+    else {
+        history.pushState({"pagenumber" : pagenum}, "",`${pagenum}`);
+        showpage(pagenum); 
     }
 }

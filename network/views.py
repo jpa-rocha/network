@@ -33,9 +33,11 @@ def index(request, page):
     posts = posts.order_by('-added').all()
     p = Paginator(posts,10)
     pagenums = p.page_range
+    lastpage = len(pagenums)
     return render(request, 'network/index.html', {
         'post' : NewPost(),
         'pagenums' : pagenums,
+        'lastpage' : lastpage
     })
 
 def createpost(request):
@@ -53,6 +55,7 @@ def userpage(request, username, page):
     posts = posts.order_by('-added').all()
     p = Paginator(posts,10)
     pagenums = p.page_range
+    lastpage = len(pagenums)
     follows = Following.objects.filter(user_id = user.id)
     followed = Following.objects.filter(follow_id = user.id)
     followcount = 0
@@ -72,7 +75,8 @@ def userpage(request, username, page):
         'joined' : user.date_joined,
         'follows' : followcount,
         'followed' : followedcount,
-        'userfollowed' : userfollowed
+        'userfollowed' : userfollowed,
+        'lastpage' : lastpage
     })
 
 def following(request, page):
@@ -85,9 +89,10 @@ def following(request, page):
     followposts = followposts.order_by('-added').all()
     p = Paginator(followposts,10)
     pagenums = p.page_range
-
+    lastpage = len(pagenums)
     return render(request, 'network/following.html',{
         'pagenums' : pagenums,
+        'lastpage' : lastpage
     })
 
 

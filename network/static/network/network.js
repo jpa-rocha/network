@@ -1,16 +1,24 @@
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Hides navi from login and register
+    hide_navi()
 
-// Takes the numbers from page links and input them in the showpage() function
+
+    // Takes the numbers from page links and input them in the showpage() function
     document.addEventListener('click', event =>{
     const element = event.target;
     const pagenum = parseInt(element.textContent)
-    if (element.className === "page-link") {
+    if (element.innerText === '&raquo;') {
+        const pagecheck = window.location.pathname.split('/')[2];
+        console.log(typeof pagecheck)
+
+    }
+    else if (element.className === "page-link") {
         history.pushState({"pagenumber" : pagenum}, "",`${pagenum}`);
         showpage(pagenum)  
     }
     })
-// Adds likes to DB and display them in page
+    // Adds likes to DB and display them in page
     document.addEventListener('click', event =>{
         const element = event.target;
         if (element.className.includes("like") ) {
@@ -19,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         })
 
-// Show and hides edit separator
+    // Show and hides edit separator
     document.addEventListener('click', event =>{
         const element = event.target;
         if (element.className.includes("editpost") ) {
@@ -38,64 +46,64 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         })
 
-        document.addEventListener('click', event =>{
-            const element = event.target;
-            if (element.className.includes("commentstitle") ) {
-                id = parseInt(element.id.slice(13));
-                commentarea = document.getElementById(`comments${id}`)
-                if (commentarea.style.display === 'none'){
-                    commentarea.style.display = 'block';
-                    showcomments(id)
+    document.addEventListener('click', event =>{
+        const element = event.target;
+        if (element.className.includes("commentstitle") ) {
+            id = parseInt(element.id.slice(13));
+            commentarea = document.getElementById(`comments${id}`)
+            if (commentarea.style.display === 'none'){
+                commentarea.style.display = 'block';
+                showcomments(id)
 
-                }
-                else{
-                    commentarea.style.display = 'none';
-                }
             }
-            })
-
-        // Makes the edits to posts
-        document.addEventListener('click', event =>{
-            const element = event.target;
-            if (element.className.includes("subedit")) {
-                id = parseInt(element.id.slice(7));
-                edit(id)
+            else{
+                commentarea.style.display = 'none';
             }
-        })
-
-        // Posts new comment
-        document.addEventListener('click', event =>{
-            const element = event.target;
-            if (element.className.includes("subcomment")) {
-                id = parseInt(element.id.slice(10));
-                newcomment(id)
-            }
-        })
-
-        // Follows user
-        document.addEventListener('click', event =>{
-            const element = event.target;
-            if (element.id === "follow") {
-                follow()
-            }
-        })
-
-        // change to different user pages
-        document.addEventListener('click', event =>{
-            const element = event.target;
-            if (element.className.includes("username")) {
-                const username = element.innerText;
-                change_user_page(username)
-            }
-        })
-        // pushes page number to url
-        window.onpopstate = function(event) {
-            showpage(event.state.pagenumber);
         }
-        history.pushState({"pagenumber" : 1}, "",'1');
-        
-        // Load first page by default
-        showpage(1);
+        })
+
+    // Makes the edits to posts
+    document.addEventListener('click', event =>{
+        const element = event.target;
+        if (element.className.includes("subedit")) {
+            id = parseInt(element.id.slice(7));
+            edit(id)
+        }
+    })
+
+    // Posts new comment
+    document.addEventListener('click', event =>{
+        const element = event.target;
+        if (element.className.includes("subcomment")) {
+            id = parseInt(element.id.slice(10));
+            newcomment(id)
+        }
+    })
+
+    // Follows user
+    document.addEventListener('click', event =>{
+        const element = event.target;
+        if (element.id === "follow") {
+            follow()
+        }
+    })
+
+    // change to different user pages
+    document.addEventListener('click', event =>{
+        const element = event.target;
+        if (element.className.includes("username")) {
+            const username = element.innerText;
+            change_user_page(username)
+        }
+    })
+    // pushes page number to url
+    window.onpopstate = function(event) {
+        showpage(event.state.pagenumber);
+    }
+    history.pushState({"pagenumber" : 1}, "",'1');
+    
+    // Load first page by default
+    showpage(1);
 })
 
 // From Django guide
@@ -500,7 +508,18 @@ function show_follow(){
 
 function change_user_page(username){
     const pagecheck = window.location.pathname.split('/')[1];
-    if (pagecheck != 'user'){
-    window.location.assign(`user/${username}/1`);
+    if (pagecheck != 'user'){   
+        window.location.assign(`user/${username}/1`);
+    }
+}
+
+function hide_navi(){
+    const navicheck = window.location.pathname.split('/')[1];
+    const navi = document.getElementById('pagenavigation');
+    if (navicheck === 'login' || navicheck === 'register'){
+        navi.style.visibility = 'hidden'
+    }
+    else{
+        navi.style.visibility = 'visible'
     }
 }

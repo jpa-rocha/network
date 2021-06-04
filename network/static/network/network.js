@@ -1,6 +1,7 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     // Hides & disables navi accordint to need
+    generate_navi()
     visual_navi()
 
 
@@ -10,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const element = event.target;
     if (element.className === "page-link") {
         navi(element.innerText)
+        generate_navi()
         visual_navi()
     }})
     
@@ -297,10 +299,11 @@ function page(num){
         newcomment.cols = 40
         newcomment.maxLength = 500
         subcomment.type = 'submit'
+        
+    })
+    })
+    })
 
-    })
-    })
-    })
     .then(()=> show_likes())
 }
 
@@ -509,6 +512,60 @@ function change_user_page(username){
     }
 }
 
+function generate_navi(){
+    const totalpages = parseInt(document.getElementById('pages').innerText);
+    const pagecheck = window.location.pathname.split('/');
+    const pagenumber = parseInt(pagecheck.slice(-1)[0]);
+    const navi = document.getElementById('naviappend');
+    const right = document.getElementById('right');
+    console.log(pagecheck)
+    console.log(pagenumber)
+    if (totalpages >= 10){
+        for ( var i = 1; i<= 10; i++){
+            const hipobox = document.getElementById(`box${i}`);
+            if (hipobox === null){
+            const box = document.createElement('li');
+            box.className = 'page-item';
+            box.id = `box${i}`
+            navi.insertBefore(box, right);
+            const link = document.createElement('a');
+            link.className = 'page-link';
+            link.id = `linkno${i}`
+            link.innerText = i;
+            box.appendChild(link);
+            }
+        }
+        if (pagenumber > 10){
+            for (var i = pagenumber-9, j=1; i<= pagenumber; i++, j++){
+                const links = document.getElementById(`linkno${j}`);
+                links.innerText = i;
+            }
+        }
+        else {
+            for (var i = 1; i<= 10; i++){
+                const links = document.getElementById(`linkno${i}`);
+                links.innerText = i;
+            }
+        }
+    }
+    else{
+        for ( var i = 1; i<= totalpages; i++){
+            const hipobox = document.getElementById(`box${i}`);
+            if (hipobox === null){
+            const box = document.createElement('li');
+            box.className = 'page-item';
+            box.id = `box${i}`
+            navi.insertBefore(box, right);
+            const link = document.createElement('a');
+            link.className = 'page-link';
+            link.id = `linkno${i}`
+            link.innerText = i;
+            box.appendChild(link);
+            }
+        }
+    }
+}
+
 function visual_navi(){
     const navicheck = window.location.pathname.split('/')[1];
     const navi = document.getElementById('pagenavigation');
@@ -517,7 +574,7 @@ function visual_navi(){
     const pagecheck = window.location.pathname.split('/');
     const pagenumber = parseInt(pagecheck.slice(-1)[0]);
     const totalpages = parseInt(document.getElementById('pages').innerText)
-    
+
     if (navicheck === 'login' || navicheck === 'register'){
         navi.style.visibility = 'hidden'
     }

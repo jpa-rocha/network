@@ -49,13 +49,11 @@
             {% endblock %}
             <div id="pages" hidden>{{lastpage}}</div>
             <nav aria-label="Page navigation" id="pagenavigation">
-                <ul class="pagination justify-content-center">
+                <ul class="pagination justify-content-center" id='naviappend'>
                     <li class="page-item disabled" id="left">
                         <a class="page-link"  tabindex="-1" >&laquo;</a>
                     </li>
-                    {% for num in pagenums %}
-                        <li class="page-item"><a class="page-link number">{{num}}</a></li>
-                    {% endfor %}
+                    
                     <li class="page-item" id="right">
                         <a class="page-link"  >&raquo;</a>
                     </li>
